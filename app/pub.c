@@ -1,39 +1,34 @@
 // an echo client 
-#include "mysocket.h"  
+#include "mysocket.h"
+#define SERVER_ADDR "192.168.1.109"
+#define SERVER_PORT 4018
+#define 
+
+void registerUser(char* userName, TSocket srvSock){
+  char registerMessage[100];
+  char registerResponse[10];
+
+  printf("User: %s\n", userName);
+  sprintf(registerMessage, "1 %s \n", userName);
+  printf("%s", registerMessage);
+  WriteN(srvSock, registerMessage, strlen(registerMessage));
+  ReadLine(srvSock, registerResponse, 3);
+
+  printf("%s", registerResponse);
+}
 
 int main(int argc, char *argv[]) {
-  TSocket sock;
-  char *servIP;                /* server IP */
-  unsigned short servPort;     /* server port */
-  char str[100];
-  int n;
+  char userName[30];
+  TSocket srvSock;
 
-  if (argc != 3) {
-    ExitWithError("Usage: client <remote server IP> <remote server Port>");    
-  }
+  // Handle connection
+  srvSock = ConnectToServer(SERVER_ADDR, SERVER_PORT);
 
-  servIP = argv[1];
-  servPort = atoi(argv[2]);
+  // 1- Apresenta para o usuario a opcao de cadastrar-se como publicador de mensagens’’ (informar login)
+  printf("Digite seu nome de usuário como publicador\n");
+  scanf("%99[^\n]%*c", userName);
 
-  /* Create a connection */
-  sock = ConnectToServer(servIP, servPort);
-
-  for(;;) {
-   /* Write msg */
-   scanf("%99[^\n]%*c",str);
-   n = strlen(str);
-   str[n] = '\n';
-   if (WriteN(sock, str, ++n) <= 0)
-     { ExitWithError("WriteN() failed"); }
-   if (strncmp(str, "quit", 4) == 0) break;
-
-   /* Receive the response */
-   if (ReadLine(sock, str, 99) < 0)
-    { ExitWithError("ReadLine() failed");
-   } else printf("%s",str);
-   
-  }
-
-  close(sock);
+  // 2- Interage com o despachante para cadastrar o usuario
+  registerUser(userName, srvSock);
   return 0;
 }
